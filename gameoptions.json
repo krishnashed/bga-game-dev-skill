@@ -1,0 +1,9 @@
+[
+    {
+        "name": "Grid Size",
+        "values": {
+            "1": { "name": "4x4", "tmdisplay": "4x4 grid" }
+        },
+        "default": 1
+    }
+]

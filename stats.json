@@ -1,0 +1,16 @@
+{
+    "table": {
+        "table_teststat1": {
+            "id": 10,
+            "type": "int",
+            "name": "Games played"
+        }
+    },
+    "player": {
+        "player_teststat1": {
+            "id": 10,
+            "type": "int",
+            "name": "Matches found"
+        }
+    }
+}

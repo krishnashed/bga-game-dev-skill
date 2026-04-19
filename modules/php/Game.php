@@ -40,26 +40,37 @@ class Game extends \Bga\GameFramework\Table
 
     public function getGameProgression()
     {
-        $totalCards = self::DbGetOne("SELECT count(*) FROM `card` WHERE `card_location` = 'grid'");
+        $totalCards = static::getUniqueValueFromDB("SELECT count(*) FROM `card` WHERE `card_location` = 'grid'");
         if ($totalCards == 0) return 100;
 
-        $solvedCards = self::DbGetOne("SELECT count(*) FROM `card` WHERE `card_location` = 'grid' AND `card_state` = 2");
+        $solvedCards = static::getUniqueValueFromDB("SELECT count(*) FROM `card` WHERE `card_location` = 'grid' AND `card_state` = 2");
         return (int) (($solvedCards / $totalCards) * 100);
     }
 
     public function upgradeTableDb($from_version)
     {
+        // Ensure all required columns exist in card table.
+        // This handles cases where the Studio DB is out of sync (e.g. during development).
+        $columns = static::getCollectionFromDB("SHOW COLUMNS FROM `card` ");
+        $columnNames = array_map(fn($c) => $c['Field'], $columns);
+
+        if (!in_array('card_color', $columnNames)) {
+            static::DbQuery("ALTER TABLE `card` ADD COLUMN `card_color` INT NOT NULL DEFAULT 0");
+        }
+        if (!in_array('card_state', $columnNames)) {
+            static::DbQuery("ALTER TABLE `card` ADD COLUMN `card_state` INT NOT NULL DEFAULT 0");
+        }
     }
 
     protected function getAllDatas(int $currentPlayerId): array
     {
         $result = [];
-        $result["players"] = $this->getCollectionFromDb(
+        $result["players"] = $this->getCollectionFromDB(
             "SELECT `player_id` AS `id`, `player_score` AS `score`, `player_color` AS `color`, `player_name` AS `name` FROM `player`"
         );
 
         // Get all cards from the grid.
-        $cards = $this->getCollectionFromDb("SELECT `card_id` AS `id`, `card_color` AS `color`, `card_location_arg` AS `pos`, `card_state` AS `state` FROM `card` WHERE `card_location` = 'grid'");
+        $cards = static::getCollectionFromDB("SELECT `card_id` AS `id`, `card_color` AS `color`, `card_location_arg` AS `pos`, `card_state` AS `state` FROM `card` WHERE `card_location` = 'grid'");
 
         // Hide colors for face-down cards.
         foreach ($cards as &$card) {
@@ -76,6 +87,8 @@ class Game extends \Bga\GameFramework\Table
 
     protected function setupNewGame($players, $options = [])
     {
+        $this->upgradeTableDb(0);
+
         $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos['player_colors'];
 

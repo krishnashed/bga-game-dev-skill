@@ -24,21 +24,21 @@ class FirstSelection extends GameState
     public function getArgs(): array
     {
         return [
-            "selectableCards" => $this->game->getCollectionFromDb("SELECT `card_id` FROM `card` WHERE `card_state` = 0")
+            "selectableCards" => $this->game->getCollectionFromDB("SELECT `card_id` FROM `card` WHERE `card_state` = 0")
         ];
     }
 
     #[PossibleAction]
     public function actFlipCard(int $cardId, int $activePlayerId)
     {
-        $card = $this->game->getNonEmptyObjectFromDb("SELECT `card_id` AS `id`, `card_color` AS `color`, `card_state` AS `state` FROM `card` WHERE `card_id` = $cardId");
+        $card = $this->game->getNonEmptyObjectFromDB("SELECT `card_id` AS `id`, `card_color` AS `color`, `card_state` AS `state` FROM `card` WHERE `card_id` = $cardId");
 
         if ($card['state'] != 0) {
             throw new UserException(clienttranslate("This card is already flipped or solved."));
         }
 
         // Update card state to Face-up.
-        static::DbQuery("UPDATE `card` SET `card_state` = 1 WHERE `card_id` = $cardId");
+        Game::DbQuery("UPDATE `card` SET `card_state` = 1 WHERE `card_id` = $cardId");
 
         // Notify players.
         $this->bga->notify->all("cardFlipped", clienttranslate('${player_name} flipped a card'), [

@@ -27,7 +27,7 @@ class Selection {
     onLeavingState(args, isCurrentPlayerActive) {}
 
     onCardClick(card_id) {
-        if (!this.bga.states.isCurrentPlayerActive()) return;
+        if (!this.bga.players.isCurrentPlayerActive()) return;
 
         this.bga.actions.performAction("actFlipCard", { 
             cardId: card_id,
@@ -88,9 +88,10 @@ export class Game {
         `);
 
         document.getElementById(`card_${card.id}`).addEventListener('click', () => {
-            const state = this.bga.states.getCurrentState();
-            if (state && (state.name === 'FirstSelection' || state.name === 'SecondSelection')) {
-                state.instance.onCardClick(card.id);
+            const stateName = this.bga.states.getCurrentMainStateName();
+            if (stateName === 'FirstSelection' || stateName === 'SecondSelection') {
+                const stateInstance = this.bga.states.getCurrentMainStateClass();
+                stateInstance.onCardClick(card.id);
             }
         });
     }
